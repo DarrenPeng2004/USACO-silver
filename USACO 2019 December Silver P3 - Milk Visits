@@ -1,0 +1,166 @@
+import java.util.*;
+import java.io.*;
+import java.math.BigInteger;
+public class Extra1 {
+    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    static PrintWriter pr = new PrintWriter(new BufferedWriter(new OutputStreamWriter(System.out)));
+    static StringTokenizer st;
+    static long mod =(long) 1e9+7;
+    static int cnt=0;
+    static int time;
+    static int ans = 1; // N-.max_x and max_y
+    static int[][] dp;
+    static int[] lvl;
+    static node[] nodes;
+    static void dfs(int node,ArrayList<ArrayList<Integer>> arr,int par){
+        if (par!=-1) {
+            for (Character i :nodes[par].map.keySet()) {
+            nodes[node].map.put(i, nodes[par].map.get(i));
+        }
+        }
+        if (nodes[node].map.containsKey(s.charAt(node-1))) {
+            nodes[node].map.put(s.charAt(node-1),nodes[node].map.get(s.charAt(node-1))+1 );
+        }else{
+            nodes[node].map.put(s.charAt(node-1), 1);
+        }
+        if (par==-1) {
+            lvl[node]=0;
+        }else{
+            lvl[node]=lvl[par]+1;
+        }
+        for (int i = 0; i < 7; i++) {
+            if (i==0) {
+                if (par==-1) {
+                    dp[node][0]=1;
+                }else{
+                    dp[node][0]=par;
+                }
+                continue;
+            }
+            //System.out.println(i+" "+dp[node][i-1]);
+            dp[node][i]=dp[dp[node][i-1]][i-1];
+        }
+        for (int i :arr.get(node)) {
+            if (i==par) {
+                continue;
+            }
+            dfs(i,arr,node);
+        }
+    }
+    static int samelvl(int a,int b){
+            for (int i = 9; i >=0; i--) {
+                if (lvl[dp[a][i]]>=lvl[b]) {
+                    a=dp[a][i];
+                }
+            }
+            return a; 
+    }
+    static int LCA(int a,int b){
+        if (lvl[a]!=lvl[b]) {
+            if (lvl[a]<lvl[b]) { //a will always be deeper
+                int temp=b;
+                b=a;a=temp;
+            }
+            a=samelvl(a,b); 
+        }
+        
+        for (int i = 9; i >=0; i--) {
+            if (dp[a][i]!=dp[b][i]) {
+                a=dp[a][i];b=dp[b][i];
+            }
+        }
+        if (a==b) {
+            return a;
+        }
+        return dp[a][0];
+    }
+    static String s;
+    public static void main(String[] args) throws IOException {
+        int N = readInt(),M=readInt();
+        nodes=new node[N+1];
+        for (int i = 0; i <= N; i++) {
+            nodes[i]=new node(i+1,new HashMap());
+        }
+        lvl=new int[N+1];
+        dp=new int[N+1][10];
+        s = readLine();
+        ArrayList<ArrayList<Integer>> arr = new ArrayList();
+        for (int i = 0; i <= N; i++) {
+            arr.add(new ArrayList());
+        }
+        for (int i = 0; i < N-1; i++) {
+            int st = readInt(),e=readInt();
+            arr.get(st).add(e);arr.get(e).add(st);
+        }
+        dfs(1,arr,-1);
+        String ans="";
+        for (int i = 0; i < M; i++) {
+            int f = readInt(),e=readInt();String next=next();
+            int lca=LCA(f,e);
+            if (s.charAt(f-1)==next.charAt(0)||s.charAt(e-1)==next.charAt(0)||s.charAt(lca-1)==next.charAt(0)) {
+                ans+="1";
+            }else if (solve(nodes[f].map,nodes[lca].map,next.charAt(0))||solve(nodes[e].map,nodes[lca].map,next.charAt(0))) {
+                ans+="1";
+            }else{
+                ans+="0";
+            }
+        }
+        System.out.println(ans);
+    }
+    static boolean solve(HashMap<Character,Integer> a,HashMap<Character,Integer> b,Character goal){ //0 is G,1is H,2 is both
+        //System.out.println(a);System.out.println(b);
+        if (a.containsKey(goal)) {
+            if (!b.containsKey(goal)||a.get(goal)-b.get(goal)>0) {
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+    }
+    static class node {
+        int num;HashMap<Character,Integer> map;
+        node(int num,HashMap<Character,Integer> map){
+            this.num=num;this.map=map;
+        }
+    }
+
+    static class pair implements Comparable<pair> {
+
+        int x, y;
+
+        pair(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        @Override
+        public int compareTo(pair p) {
+            return Integer.compare(this.x, p.x);
+        }
+    }
+
+    static String next() throws IOException {
+        while (st == null || !st.hasMoreTokens()) {
+            st = new StringTokenizer(br.readLine().trim());
+        }
+        return st.nextToken();
+    }
+
+    static long readLong() throws IOException {
+        return Long.parseLong(next());
+    }
+
+    static int readInt() throws IOException {
+        return Integer.parseInt(next());
+    }
+
+    static double readDouble() throws IOException {
+        return Double.parseDouble(next());
+    }
+
+    static String readLine() throws IOException {
+        return br.readLine().trim();
+    }
+}
